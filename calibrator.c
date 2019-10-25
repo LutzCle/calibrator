@@ -37,9 +37,7 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
 #include        <unistd.h>
-*/
 #include        <stdlib.h>
 #include	<stdio.h>
 #include	<math.h>
@@ -128,7 +126,7 @@ void ErrXit(char *format, ...) {
 	exit(1);
 }
 
-lng round(dbl x)
+lng calibrator_round(dbl x)
 {
 	return (lng)(x + 0.5);
 }
@@ -890,16 +888,16 @@ void plotCache(cacheInfo *cache, lng **result, lng MHz, char *fn, FILE *fp, lng 
 	fprintf(fp, ")\n");
 	fprintf(fp, "set y2tics");
 	for (l = 0, s = " ("; l <= cache->levels; l++, s = ", ") {
-		if (!delay)	fprintf(fp, "%s'(%ld)' %f", s, round(CYperIt(cache->latency1[l] - delay)), NSperIt(cache->latency1[l] - delay));
-			else	fprintf(fp, "%s'(%ld)' %f", s, round(CYperIt(cache->latency2[l] - delay)), NSperIt(cache->latency2[l] - delay));
+		if (!delay)	fprintf(fp, "%s'(%ld)' %f", s, calibrator_round(CYperIt(cache->latency1[l] - delay)), NSperIt(cache->latency1[l] - delay));
+			else	fprintf(fp, "%s'(%ld)' %f", s, calibrator_round(CYperIt(cache->latency2[l] - delay)), NSperIt(cache->latency2[l] - delay));
 	}
 	for (y = 1; y <= yh; y *= 10) {
 		fprintf(fp, "%s'%1.3g' %ld", s, (dbl)(y * MHz) / 1000.0, y);
 	}
 	fprintf(fp, ")\n");
 	for (l = 0; l <= cache->levels; l++) {
-		if (!delay)	z = (dbl)round(CYperIt(cache->latency1[l] - delay)) * 1000.0 / (dbl)MHz;
-			else	z = (dbl)round(CYperIt(cache->latency2[l] - delay)) * 1000.0 / (dbl)MHz;
+		if (!delay)	z = (dbl)calibrator_round(CYperIt(cache->latency1[l] - delay)) * 1000.0 / (dbl)MHz;
+			else	z = (dbl)calibrator_round(CYperIt(cache->latency2[l] - delay)) * 1000.0 / (dbl)MHz;
 		fprintf(fp, "set label %ld '(%1.3g)  ' at %f,%f right\n", l + 1, z, xl, z);
 		fprintf(fp, "set arrow %ld from %f,%f to %f,%f nohead lt 0\n", l + 1, xl, z, xh, z);
 	}
@@ -986,16 +984,16 @@ void plotTLB(TLBinfo *TLB, lng **result, lng MHz, char *fn, FILE *fp, lng delay)
 	fprintf(fp, "%s'<L1>' %ld)\n", s, TLB->mincachelines);
 	fprintf(fp, "set y2tics");
 	for (l = 0, s = " ("; l <= TLB->levels; l++, s = ", ") {
-		if (!delay)	fprintf(fp, "%s'(%ld)' %f", s, round(CYperIt(TLB->latency1[l] - delay)), NSperIt(TLB->latency1[l] - delay));
-			else	fprintf(fp, "%s'(%ld)' %f", s, round(CYperIt(TLB->latency2[l] - delay)), NSperIt(TLB->latency2[l] - delay));
+		if (!delay)	fprintf(fp, "%s'(%ld)' %f", s, calibrator_round(CYperIt(TLB->latency1[l] - delay)), NSperIt(TLB->latency1[l] - delay));
+			else	fprintf(fp, "%s'(%ld)' %f", s, calibrator_round(CYperIt(TLB->latency2[l] - delay)), NSperIt(TLB->latency2[l] - delay));
 	}
 	for (y = 1; y <= yh; y *= 10) {
 		fprintf(fp, "%s'%1.3g' %ld", s, (dbl)(y * MHz) / 1000.0, y);
 	}
 	fprintf(fp, ")\n");
 	for (l = 0; l <= TLB->levels; l++) {
-		if (!delay)	z = (dbl)round(CYperIt(TLB->latency1[l] - delay)) * 1000.0 / (dbl)MHz;
-			else	z = (dbl)round(CYperIt(TLB->latency2[l] - delay)) * 1000.0 / (dbl)MHz;
+		if (!delay)	z = (dbl)calibrator_round(CYperIt(TLB->latency1[l] - delay)) * 1000.0 / (dbl)MHz;
+			else	z = (dbl)calibrator_round(CYperIt(TLB->latency2[l] - delay)) * 1000.0 / (dbl)MHz;
 		fprintf(fp, "set label %ld '(%1.3g)  ' at %f,%f right\n", l + 1, z, xl, z);
 		fprintf(fp, "set arrow %ld from %f,%f to %f,%f nohead lt 0\n", l + 1, xl, z, xh, z);
 	}
@@ -1023,9 +1021,9 @@ void printCPU(cacheInfo *cache, lng MHz, lng delay)
 	FILE	*fp = stdout;
 		
 	fprintf(fp, "CPU loop + L1 access:    ");
-	fprintf(fp, " %6.2f ns = %3ld cy\n", NSperIt(cache->latency1[0]), round(CYperIt(cache->latency1[0])));
+	fprintf(fp, " %6.2f ns = %3ld cy\n", NSperIt(cache->latency1[0]), calibrator_round(CYperIt(cache->latency1[0])));
 	fprintf(fp, "             ( delay:    ");
-	fprintf(fp, " %6.2f ns = %3ld cy )\n", NSperIt(delay),            round(CYperIt(delay)));
+	fprintf(fp, " %6.2f ns = %3ld cy )\n", NSperIt(delay),            calibrator_round(CYperIt(delay)));
 	fprintf(fp, "\n");
 	fflush(fp);
 }
@@ -1047,8 +1045,8 @@ void printCache(cacheInfo *cache, lng MHz)
 			fprintf(fp, " %3ld KB ", cache->size[l] / 1024);
 		}
 		fprintf(fp, " %3ld bytes ", cache->linesize[l + 1]);
-		fprintf(fp, " %6.2f ns = %3ld cy " , NSperIt(cache->latency2[l + 1] - cache->latency2[l]), round(CYperIt(cache->latency2[l + 1] - cache->latency2[l])));
-		fprintf(fp, " %6.2f ns = %3ld cy\n", NSperIt(cache->latency1[l + 1] - cache->latency1[l]), round(CYperIt(cache->latency1[l + 1] - cache->latency1[l])));
+		fprintf(fp, " %6.2f ns = %3ld cy " , NSperIt(cache->latency2[l + 1] - cache->latency2[l]), calibrator_round(CYperIt(cache->latency2[l + 1] - cache->latency2[l])));
+		fprintf(fp, " %6.2f ns = %3ld cy\n", NSperIt(cache->latency1[l + 1] - cache->latency1[l]), calibrator_round(CYperIt(cache->latency1[l + 1] - cache->latency1[l])));
 	}
 	fprintf(fp, "\n");
 	fflush(fp);
@@ -1075,9 +1073,9 @@ void printTLB(TLBinfo *TLB, lng MHz)
 		} else {
 			fprintf(fp, "  %3ld KB  ", TLB->pagesize[l + 1] / 1024);
 		}
-		fprintf(fp, " %6.2f ns = %3ld cy ", NSperIt(TLB->latency2[l + 1] - TLB->latency2[l]), round(CYperIt(TLB->latency2[l + 1] - TLB->latency2[l])));
+		fprintf(fp, " %6.2f ns = %3ld cy ", NSperIt(TLB->latency2[l + 1] - TLB->latency2[l]), calibrator_round(CYperIt(TLB->latency2[l + 1] - TLB->latency2[l])));
 /*
-		fprintf(fp, " %6.2f ns = %3ld cy" , NSperIt(TLB->latency1[l + 1] - TLB->latency1[l]), round(CYperIt(TLB->latency1[l + 1] - TLB->latency1[l])));
+		fprintf(fp, " %6.2f ns = %3ld cy" , NSperIt(TLB->latency1[l + 1] - TLB->latency1[l]), calibrator_round(CYperIt(TLB->latency1[l + 1] - TLB->latency1[l])));
 */
 		fprintf(fp, "\n");
 	}
@@ -1119,13 +1117,13 @@ int main(int ac, char **av)
 		ErrXit("main: 'array0 = malloc(%ld)` failed", maxrange+pgsz);
 
 	array = array0;
-        fprintf(stderr,"%x %ld %ld %5ld\n",array,(lng)array,pgsz,(lng)array%pgsz);
+        fprintf(stderr,"%p %ld %ld %5ld\n",array,(lng)array,pgsz,(lng)array%pgsz);
         while (((lng)array % pgsz) != align) {
-		fprintf(stderr,"\r%x %ld %ld %5ld",array,(lng)array,pgsz,(lng)array%pgsz);
+		fprintf(stderr,"\r%p %ld %ld %5ld",array,(lng)array,pgsz,(lng)array%pgsz);
 		fflush(stderr);
 		array++;
 	}
-	fprintf(stderr,"\n%x %ld %ld %5ld\n\n",array,(lng)array,pgsz,(lng)array%pgsz);
+	fprintf(stderr,"\n%p %ld %ld %5ld\n\n",array,(lng)array,pgsz,(lng)array%pgsz);
 	fflush(stderr);
 	
 	MINTIME = MAX( MINTIME, 10*getMINTIME() );
